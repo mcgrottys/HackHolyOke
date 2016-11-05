@@ -29,36 +29,47 @@
     <script src="scripts/shared.js"></script>
     <script>
         var color = d3.scale.category10();
-
+        var OsciCount = 15;
         var svg = d3.select("body").append("svg")
             .attr("width", innerWidth)
             .attr("height", innerHeight);
 
         var circle = svg.selectAll("circle.touch");
-
+        var width = parseFloat(svg.style("width"));
+        var height = parseFloat(svg.style("height"));
         d3.select("body")
             .on("touchstart", touch)
             .on("touchmove", touch)
             .on("touchend", touch);
 
         var OscIDScale = d3.scale.linear()
-              .domain([0, 1400])
-              .range([0, 9]);
+              .domain([0,  width])
+              .range([0, OsciCount]);
 
         var GainScale = d3.scale.linear()
-              .domain([0, 800])
-              .range([0, 1]);
+              .domain([height, 0])
+              .range([-0.2, 1.2]);
 
 
         var FreqScale = d3.scale.linear()
-              .domain([0, 1400])
-              .range([0, 9]);
+              .domain([0, width])
+              .range([0, OsciCount]);
+
+        var FreqScale2 = d3.scale.linear()
+              .domain([0, OsciCount])
+              .range([0, width]);
+
+        console.log(FreqScale2(1));
+
+        var FreqValScale = d3.scale.linear()
+             .domain([0, FreqScale2(1)])
+             .range([50, 300]);
 
         var LineScale = d3.scale.linear()
-      .domain([0, 10])
-      .range([0, 1400]);
+      .domain([0, OsciCount])
+      .range([0, width]);
 
-        for (var i = 0; i < 9; i++) {
+        for (var i = 0; i < OsciCount; i++) {
             svg.append("line")          // attach a line
 .style("stroke", "black")  // colour the line
 .attr("x1", LineScale(i + 1))     // x position of the first end of the line
@@ -93,7 +104,7 @@
             // Create some sweet sweet nodes.
             this.oscillator = [];
             this.gainnode = [];
-            var ArrayLength = 9;
+            var ArrayLength = OsciCount;
             for (var i = 0; i < ArrayLength; i++) {
                 this.oscillator[i] = context.createOscillator();
                 this.gainnode[i] = context.createGain();
@@ -160,7 +171,7 @@
 
         OscillatorSample.prototype.changeVolume = function (id, val, freq) {
          
-            this.oscillator[id].frequency.value = freq * 10;
+            this.oscillator[id].frequency.value = freq;
             //console.log(val/1000);
             this.gainnode[id].gain.value = val / 100;
             //for (var i = 0; i < this.oscillator.length; i++) {
@@ -223,10 +234,10 @@
             var max = d3.max(times);
             var x = d3.scale.linear()
 .domain([0, times.length])
-.range([0, 1500]);
+.range([0, width]);
             var y = d3.scale.linear()
 .domain([d3.min(times)-5, max])
-.range([0, 900]);
+.range([0, height]);
 
             var line = d3.svg.line()
       .x(function (d, i) { return x(i); })
@@ -268,7 +279,7 @@
             d3.event.preventDefault();
 
             circle = circle
-                .data(d3.touches(svg.node()), function (d) { sample.changeVolume(parseInt(OscIDScale(d[0])), (FreqScale(d[1])),d[0]%LineScale(1)); return d.identifier; });
+                .data(d3.touches(svg.node()), function (d) { sample.changeVolume(parseInt(OscIDScale(d[0])), (GainScale(d[1])), FreqValScale(d[0] % LineScale(1))); return d.identifier; });
 
             circle.exit()
                 .attr("class", null)
