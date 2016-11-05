@@ -1,0 +1,297 @@
+﻿<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1,maximum-scale=1">
+<style>
+    html,
+    body {
+        height: 100%;
+    }
+
+    body {
+        margin: 0;
+    }
+
+    svg {
+        display: block;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+    }
+    path { 
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+}
+</style>
+<body>
+    <script src="//d3js.org/d3.v3.min.js"></script>
+    <script src="scripts/oscillator-sample.js"></script>
+    <script src="scripts/shared.js"></script>
+    <script>
+        var color = d3.scale.category10();
+
+        var svg = d3.select("body").append("svg")
+            .attr("width", innerWidth)
+            .attr("height", innerHeight);
+
+        var circle = svg.selectAll("circle.touch");
+
+        d3.select("body")
+            .on("touchstart", touch)
+            .on("touchmove", touch)
+            .on("touchend", touch);
+
+        var OscIDScale = d3.scale.linear()
+              .domain([0, 1400])
+              .range([0, 9]);
+
+        var GainScale = d3.scale.linear()
+              .domain([0, 800])
+              .range([0, 1]);
+
+
+        var FreqScale = d3.scale.linear()
+              .domain([0, 1400])
+              .range([0, 9]);
+
+        var LineScale = d3.scale.linear()
+      .domain([0, 10])
+      .range([0, 1400]);
+
+        for (var i = 0; i < 9; i++) {
+            svg.append("line")          // attach a line
+.style("stroke", "black")  // colour the line
+.attr("x1", LineScale(i + 1))     // x position of the first end of the line
+.attr("y1", 0)      // y position of the first end of the line
+.attr("x2", LineScale(i + 1))     // x position of the second end of the line
+.attr("y2", 1000);    // y position of the second end of the line
+
+        }
+
+        function OscillatorSample() {
+            this.isPlaying = false;
+            this.canvas = document.querySelector('canvas');
+            this.WIDTH = 640;
+            this.HEIGHT = 240;
+        }
+
+        function makeDistortionCurve(amount) {
+            var k = typeof amount === 'number' ? amount : 50,
+              n_samples = 44100,
+              curve = new Float32Array(n_samples),
+              deg = Math.PI / 180,
+              i = 0,
+              x;
+            for (; i < n_samples; ++i) {
+                x = i * 2 / n_samples - 1;
+                curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+            }
+            return curve;
+        };
+
+        OscillatorSample.prototype.play = function () {
+            // Create some sweet sweet nodes.
+            this.oscillator = [];
+            this.gainnode = [];
+            var ArrayLength = 9;
+            for (var i = 0; i < ArrayLength; i++) {
+                this.oscillator[i] = context.createOscillator();
+                this.gainnode[i] = context.createGain();
+            }
+
+            this.analyser = context.createAnalyser();
+
+            var distortion = context.createWaveShaper();
+
+            // Setup the graph.
+            for (var i = 0; i < this.oscillator.length; i++) {
+                this.oscillator[i].connect(this.gainnode[i]);
+                this.gainnode[i].connect(this.analyser);
+                this.gainnode[i].gain.value = 0;
+            }
+
+            this.analyser.connect(context.destination);
+
+            for (var i = 0; i < this.oscillator.length; i++) {
+                this.oscillator[i][this.oscillator[i].start ? 'start' : 'noteOn'](0);
+                this.oscillator[i].frequency.val = 100 + (((i + 1) / 9) * 440);
+               // console.log(((i + 1) / 9) * 1000);
+            }
+            //distortion.curve = makeDistortionCurve(1000);
+            //distortion.oversample = '4x';
+            requestAnimFrame(this.visualize.bind(this));
+        };
+
+        OscillatorSample.prototype.stop = function () {
+            for (var i = 0; i < this.oscillator.length; i++) {
+                this.oscillator[i].stop(0);
+            }
+        };
+
+        OscillatorSample.prototype.toggle = function () {
+            (this.isPlaying ? this.stop() : this.play());
+            this.isPlaying = !this.isPlaying;
+
+        };
+
+        OscillatorSample.prototype.changeFrequency = function (val) {
+            for (var i = 0; i < this.oscillator.length; i++) {
+                //this.oscillator[i].frequency.value = val * ((i+1)/this.oscillator.length);
+                this.oscillator[i].frequency.val = ((i + 1) / 9) * 1000;
+            }
+        };
+
+        OscillatorSample.prototype.changeDetune = function (val) {
+            for (var i = 0; i < this.oscillator.length; i++) {
+                this.oscillator[i].detune.value = val;
+            }
+
+        };
+
+        //OscillatorSample.prototype.changeVolume = function (id,val) {
+
+        //    this.gainnode[id].gain.value = val / 100;
+        //    //for (var i = 0; i < this.gainnode.length; i++) {
+        //    //    this.gainnode[i].gain.value = val / 100;
+        //    //    console.log((i+1/this.gainnode.length)*(val/100));
+        //    //}
+
+        //};
+
+        OscillatorSample.prototype.changeVolume = function (id, val, freq) {
+         
+            this.oscillator[id].frequency.value = freq * 10;
+            //console.log(val/1000);
+            this.gainnode[id].gain.value = val / 100;
+            //for (var i = 0; i < this.oscillator.length; i++) {
+            //    this.oscillator[i].frequency.value = val;
+            //}
+            //this.gainnode[id].gain.value = val / 100;
+            //for (var i = 0; i < this.gainnode.length; i++) {
+            //    this.gainnode[i].gain.value = val / 100;
+            //    console.log((i+1/this.gainnode.length)*(val/100));
+            //}
+
+        };
+
+        function getRandomArbitrary(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        OscillatorSample.prototype.changeType = function (type) {
+            for (var i = 0; i < this.oscillator.length; i++) {
+                if (type == "triangle") {
+                    var real = new Float32Array(20);
+                    var imag = new Float32Array(20);
+                    for (var j = 0; j < real.length; j++) {
+                        real[j] = 0;// getRandomArbitrary(0, 1);
+                    }
+                    for (var j = 0; j < imag.length; j++) {
+                        imag[j] = 0;// getRandomArbitrary(0, 1);
+                    }
+                    //real[0] = 0;
+                    //imag[0] = 0;
+                    //real[1] = 1;
+                    //imag[1] = 0;
+                    //real[2] = .5;
+                    //imag[2] = 0;
+                    //real[3] = 1;
+                    //imag[3] = 0;
+                    //real[4] = 0;
+                    //imag[4] = 0;
+                    //real[5] = 1;
+                    //imag[5] = 0;
+
+                    var wave = context.createPeriodicWave(real, imag);
+                    // this.oscillator[i].type = "custom";
+                    this.oscillator[i].setPeriodicWave(wave);
+                }
+                else {
+                    this.oscillator[i].type = type;
+                }
+            }
+
+        };
+
+        OscillatorSample.prototype.visualize = function () {
+            //this.canvas.width = this.WIDTH;
+            //this.canvas.height = this.HEIGHT;
+            //var drawContext = this.canvas.getContext('2d');
+
+            var times = new Uint8Array(this.analyser.frequencyBinCount);
+            this.analyser.getByteTimeDomainData(times);
+            var max = d3.max(times);
+            var x = d3.scale.linear()
+.domain([0, times.length])
+.range([0, 1500]);
+            var y = d3.scale.linear()
+.domain([d3.min(times)-5, max])
+.range([0, 900]);
+
+            var line = d3.svg.line()
+      .x(function (d, i) { return x(i); })
+      .y(function (d) { return y(d); });
+            //console.log(times);
+            svg.selectAll("path").remove();
+            svg.append("path")
+                .data(times)
+                   .attr("class", "line")
+                   .attr("d", line(times));
+
+            //svg.append("path")
+            //               .attr("class", "line")
+            //               .attr("d", line(times));
+
+            //this.analyser.getByteTimeDomainData(times);
+            //for (var i = 0; i < times.length; i++) {
+            //    var value = times[i];
+            //    var percent = value / 256;
+            //    var height = this.HEIGHT * percent;
+            //    var offset = this.HEIGHT - height - 1;
+            //    var barWidth = this.WIDTH / times.length;
+            //    drawContext.fillStyle = 'black';
+            //    drawContext.fillRect(i * barWidth, offset, 1, 1);
+            //}
+            requestAnimFrame(this.visualize.bind(this));
+        };
+
+
+        var sample = new OscillatorSample();
+        sample.toggle();
+     
+
+
+        function touch() {
+
+
+
+            d3.event.preventDefault();
+
+            circle = circle
+                .data(d3.touches(svg.node()), function (d) { sample.changeVolume(parseInt(OscIDScale(d[0])), (FreqScale(d[1])),d[0]%LineScale(1)); return d.identifier; });
+
+            circle.exit()
+                .attr("class", null)
+              .transition()
+                .attr("r", 1e-6)
+                .remove();
+
+            circle.enter().append("circle")
+                .attr("class", "touch")
+                .attr("r", 1e-6)
+                .style("fill", function (d) { return color(d.identifier); })
+              .transition()
+                .duration(500)
+                .ease("elastic")
+                .attr("r", 48);
+
+            circle
+                .attr("cx", function (d) { return d[0]; })
+                .attr("cy", function (d) { return d[1]; });
+        }
+
+    </script>
+    <script>
+
+    </script>
+</body>

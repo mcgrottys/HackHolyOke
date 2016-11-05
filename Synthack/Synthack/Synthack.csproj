@@ -107,6 +107,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="AudioBufferTest.html" />
+    <Content Include="D3WebAPI.html" />
+    <Content Include="FrontEnd\home.html" />
+    <Content Include="FrontEnd\styles.css" />
     <Content Include="Index.html" />
     <Content Include="scripts\ai.0.22.19-build00125.js" />
     <Content Include="scripts\ai.0.22.19-build00125.min.js" />

@@ -6,6 +6,7 @@
     <title>Oscillator | Web Audio API</title>
 
     <link rel="stylesheet" href="/static/style.css" type="text/css" media="screen" />
+    <link href="FrontEnd/styles.css" rel="stylesheet" />
 </head>
 
 <body>
@@ -42,13 +43,28 @@
                     <p><canvas style="background: white;"></canvas></p>
 
                     <div>
-                        Frequency: <input id="frequency" type="range" min="0" max="1000"
+                       <!--<input id="frequency" type="range" min="0" max="1000"
                                           step="1" value="440"
                                           onchange="sample.changeFrequency(this.value);">
-                        Detune: <input id="detune" type="range" min="-100" max="100" step="5" value="0"
+                       <input id="detune" type="range" min="-100" max="100" step="5" value="0"
                                        onchange="sample.changeDetune(this.value);">
-                        Volume: <input id="volume" type="range" min="0" max="100" step="5" value="50"
-                                       onchange="sample.changeVolume(this.value);">
+                       <input id="volume" type="range" min="0" max="100" step="5" value="50"
+                                       onchange="sample.changeVolume(this.value);">-->
+                        <br />
+                        <input id="0" type="range" min="1" max="100" step="1" value="50"
+                               onchange="sample.changeVolume(this.id,this.value);">
+                        <input id="1" type="range" min="1" max="100" step="1" value="50"
+                               onchange="sample.changeVolume(this.id, this.value);">
+                        <input id="2" type="range" min="1" max="100" step="1" value="50"
+                               onchange="sample.changeVolume(this.id, this.value);">
+                        <input id="3" type="range" min="1" max="100" step="1" value="50"
+                               onchange="sample.changeVolume(this.id, this.value);">
+                        <!--<input id="volume" type="range" min="0" max="100" step="5" value="50"
+                               onchange="sample.changeVolume(this.value);">
+                        <input id="volume" type="range" min="0" max="100" step="5" value="50"
+                               onchange="sample.changeVolume(this.value);">
+                        <input id="volume" type="range" min="0" max="100" step="5" value="50"
+                               onchange="sample.changeVolume(this.value);">-->
                     </div>
 
                     <div>
@@ -61,16 +77,37 @@
                         <input type="radio" name="ir" value="3" class="effect"
                                onclick="sample.changeType('triangle')">Triangle</input>
                     </div>
+                    <!--<div class="container">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <input type="range">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="range">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="range">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="range">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="range">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="range">
+                            </div>
+                        </div>
+                        </div>-->
+                        <p><button onclick="sample.toggle()">Play/pause</button></p>
+                        <script src="scripts/shared.js"></script>
+                        <script src="scripts/oscillator-sample.js"></script>
+                        <script>
+                            var sample = new OscillatorSample();
+                        </script>
 
-                    <p><button onclick="sample.toggle()">Play/pause</button></p>
-                    <script src="scripts/shared.js"></script>
-                    <script src="scripts/oscillator-sample.js"></script>
-                    <script>
-var sample = new OscillatorSample();
-                    </script>
-
-                    </p>
-                </div>
+                        </p>
+                    </div>
 
 
             </div>
@@ -79,15 +116,6 @@ var sample = new OscillatorSample();
 
         <script type="text/javascript">
 
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-17930798-28']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
 
         </script>
 </body>
