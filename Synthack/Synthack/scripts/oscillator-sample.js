@@ -8,20 +8,36 @@ function OscillatorSample() {
 
 OscillatorSample.prototype.play = function () {
     // Create some sweet sweet nodes.
-    this.oscillator = context.createOscillator();
+    this.oscillator = [];
+    this.gainnode = [];
+    var ArrayLength = 20;
+    for (var i = 0; i < ArrayLength; i++) {
+        this.oscillator[i] = context.createOscillator();
+        this.gainnode[i] = context.createGain();
+    }
+
     this.analyser = context.createAnalyser();
 
     // Setup the graph.
-    this.oscillator.connect(this.analyser);
+    for (var i = 0; i < this.oscillator.length; i++) {
+        this.oscillator[i].connect(this.gainnode[i]);
+        this.gainnode[i].connect(this.analyser);
+        this.gainnode[i].gain.value = (i + 1) / this.oscillator.length;
+
+    }
+    
     this.analyser.connect(context.destination);
 
-    this.oscillator[this.oscillator.start ? 'start' : 'noteOn'](0);
-
+    for (var i = 0; i < this.oscillator.length; i++) {
+        this.oscillator[i][this.oscillator[i].start ? 'start' : 'noteOn'](0);
+    }
     requestAnimFrame(this.visualize.bind(this));
 };
 
 OscillatorSample.prototype.stop = function () {
-    this.oscillator.stop(0);
+    for (var i = 0; i < this.oscillator.length; i++) {
+        this.oscillator[i].stop(0);
+    }
 };
 
 OscillatorSample.prototype.toggle = function () {
@@ -31,15 +47,63 @@ OscillatorSample.prototype.toggle = function () {
 };
 
 OscillatorSample.prototype.changeFrequency = function (val) {
-    this.oscillator.frequency.value = val;
+    for (var i = 0; i < this.oscillator.length; i++) {
+        this.oscillator[i].frequency.value = val * ((i+1)/this.oscillator.length);
+    }
 };
 
 OscillatorSample.prototype.changeDetune = function (val) {
-    this.oscillator.detune.value = val;
+    for (var i = 0; i < this.oscillator.length; i++) {
+        this.oscillator[i].detune.value = val;
+    }
+
 };
 
+OscillatorSample.prototype.changeVolume = function (val) {
+    for (var i = 0; i < this.gainnode.length; i++) {
+        this.gainnode[i].gain.value = val / 100;
+        console.log((i+1/this.gainnode.length)*(val/100));
+    }
+
+};
+
+function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
 OscillatorSample.prototype.changeType = function (type) {
-    this.oscillator.type = type;
+    for (var i = 0; i < this.oscillator.length; i++) {
+        if (type == "triangle") {
+            var real = new Float32Array(20);
+            var imag = new Float32Array(20);
+            for (var j = 0; j < real.length; j++) {
+                real[j] = 0;// getRandomArbitrary(0, 1);
+            }
+            for (var j = 0; j < imag.length; j++) {
+                imag[j] = 0;// getRandomArbitrary(0, 1);
+            }
+            //real[0] = 0;
+            //imag[0] = 0;
+            //real[1] = 1;
+            //imag[1] = 0;
+            //real[2] = .5;
+            //imag[2] = 0;
+            //real[3] = 1;
+            //imag[3] = 0;
+            //real[4] = 0;
+            //imag[4] = 0;
+            //real[5] = 1;
+            //imag[5] = 0;
+
+            var wave = context.createPeriodicWave(real, imag);
+            // this.oscillator[i].type = "custom";
+            this.oscillator[i].setPeriodicWave(wave);
+        }
+        else {
+            this.oscillator[i].type = type;
+        }
+    }
+
 };
 
 OscillatorSample.prototype.visualize = function () {
