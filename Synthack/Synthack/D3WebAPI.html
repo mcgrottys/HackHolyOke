@@ -48,7 +48,11 @@
 
         var GainScale = d3.scale.linear()
               .domain([height, 0])
-              .range([-0.2, 1.2]);
+              .range([0, .5]);
+        var GainScaleInv = d3.scale.linear()
+              .domain([0, .5])
+              .range([height, 0]);
+
 
 
         var FreqScale = d3.scale.linear()
@@ -59,11 +63,15 @@
               .domain([0, OsciCount])
               .range([0, width]);
 
-        console.log(FreqScale2(1));
+       // console.log(FreqScale2(1));
 
         var FreqValScale = d3.scale.linear()
              .domain([0, FreqScale2(1)])
              .range([50, 300]);
+
+        var FreqValScaleInv = d3.scale.linear()
+     .domain([50, 300])
+     .range([0, FreqScale2(1)]);
 
         var LineScale = d3.scale.linear()
       .domain([0, OsciCount])
@@ -76,7 +84,7 @@
 .attr("y1", 0)      // y position of the first end of the line
 .attr("x2", LineScale(i + 1))     // x position of the second end of the line
 .attr("y2", 1000);    // y position of the second end of the line
-
+  
         }
 
         function OscillatorSample() {
@@ -173,7 +181,7 @@
          
             this.oscillator[id].frequency.value = freq;
             //console.log(val/1000);
-            this.gainnode[id].gain.value = val / 100;
+            this.gainnode[id].gain.value = val;
             //for (var i = 0; i < this.oscillator.length; i++) {
             //    this.oscillator[i].frequency.value = val;
             //}
@@ -248,6 +256,19 @@
                 .data(times)
                    .attr("class", "line")
                    .attr("d", line(times));
+
+            svg.selectAll(".Osc").remove();
+
+            console.log(sample.gainnode[0].gain.value);
+            for (var i = 0; i < sample.oscillator.length; i++) {
+                svg.append("line").attr("class","Osc")          // attach a line
+    .style("stroke", "black")  // colour the line
+    .attr("x1", LineScale(i) + FreqValScaleInv(sample.oscillator[i].frequency.value))     // x position of the first end of the line
+    .attr("y1", GainScaleInv(sample.gainnode[i].gain.value))      // y position of the first end of the line
+    .attr("x2", LineScale(i) + FreqValScaleInv(sample.oscillator[i].frequency.value))     // x position of the second end of the line
+    .attr("y2", height);    // y position of the second end of the line
+
+            }
 
             //svg.append("path")
             //               .attr("class", "line")
